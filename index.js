@@ -161,7 +161,13 @@ async function run() {
 
       try {
         const filter = { _id: new ObjectId(orderId) }; // Find order by ID
-        const update = { $set: { status: status } }; // Update the status
+        const update = { 
+          $set: {
+             status: status,
+             acceptedAt: new Date(), 
+            },
+          
+         }; // Update the status
 
         const result = await ordersCollection.updateOne(filter, update); // Perform the update
 
