@@ -11,17 +11,26 @@ module.exports = (client) => {
   });
 
   router.get('/', async (req, res) => {
-    const orders = await ordersCollection.find().toArray();
+    const orders = await ordersCollection.
+     find()
+     .sort({ _id: -1 })
+     .toArray();
     res.send(orders);
   });
 
   router.get('/provider/:email', async (req, res) => {
-    const orders = await ordersCollection.find({ providerEmail: req.params.email }).toArray();
+    const orders = await ordersCollection
+      .find({ providerEmail: req.params.email })
+      .sort({ _id: -1 })
+      .toArray();
     res.send(orders);
   });
 
   router.get('/user/:email', async (req, res) => {
-    const orders = await ordersCollection.find({ orderEmail: req.params.email }).toArray();
+    const orders = await ordersCollection
+      .find({ orderEmail: req.params.email })
+      .sort({ _id: -1 })
+      .toArray();
     res.send(orders);
   });
 
