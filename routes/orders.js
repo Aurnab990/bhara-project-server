@@ -11,10 +11,10 @@ module.exports = (client) => {
   });
 
   router.get('/', async (req, res) => {
-    const orders = await ordersCollection.
-     find()
-     .sort({ _id: -1 })
-     .toArray();
+    const orders = await ordersCollection
+      .find()
+      .sort({ _id: -1 })
+      .toArray();
     res.send(orders);
   });
 
@@ -40,6 +40,28 @@ module.exports = (client) => {
     const update = { $set: { status, acceptedAt: new Date() } };
     const result = await ordersCollection.updateOne({ _id: new ObjectId(id) }, update);
     res.send(result);
+  });
+
+  // New route to update the transaction number
+  router.patch('/transaction/:id', async (req, res) => {
+    const { id } = req.params;
+    const { transactionNumber } = req.body;
+
+    try {
+      const result = await ordersCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { transactionNumber } }
+      );
+
+      if (result.matchedCount === 0) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+
+      res.json({ message: 'Transaction number updated successfully', result });
+    } catch (err) {
+      console.error('Error updating transaction number:', err);
+      res.status(500).json({ error: 'Failed to update transaction number' });
+    }
   });
 
   return router;
