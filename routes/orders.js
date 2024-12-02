@@ -1,68 +1,51 @@
 const express = require('express');
-const { ObjectId } = require('mongodb');
+const Order = require('../models/order');
 
-module.exports = (client) => {
-  const router = express.Router();
-  const ordersCollection = client.db('treehouse').collection('orders');
+const router = express.Router();
 
-  router.post('/', async (req, res) => {
-    const result = await ordersCollection.insertOne(req.body);
-    res.send(result);
-  });
+router.post('/', async (req, res) => {
+  try {
+    const result = await Order.create(req.body);
+    res.status(201).json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
-  router.get('/', async (req, res) => {
-    const orders = await ordersCollection
-      .find()
-      .sort({ _id: -1 })
-      .toArray();
-    res.send(orders);
-  });
+router.get('/', async (req, res) => {
+  try {
+    const orders = await Order.find().sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
-  router.get('/provider/:email', async (req, res) => {
-    const orders = await ordersCollection
-      .find({ providerEmail: req.params.email })
-      .sort({ _id: -1 })
-      .toArray();
-    res.send(orders);
-  });
+router.get('/provider/:email', async (req, res) => {
+  try {
+    const orders = await Order.find({ providerEmail: req.params.email }).sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
-  router.get('/user/:email', async (req, res) => {
-    const orders = await ordersCollection
-      .find({ orderEmail: req.params.email })
-      .sort({ _id: -1 })
-      .toArray();
-    res.send(orders);
-  });
+router.get('/user/:email', async (req, res) => {
+  try {
+    const orders = await Order.find({ orderEmail: req.params.email }).sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
-  router.patch('/:id', async (req, res) => {
-    const { id } = req.params;
-    const { status } = req.body;
-    const update = { $set: { status, acceptedAt: new Date() } };
-    const result = await ordersCollection.updateOne({ _id: new ObjectId(id) }, update);
-    res.send(result);
-  });
+router.patch('/:id', async (req, res) => {
+  try {
+    const result = await Order.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
-  // New route to update the transaction number
-  router.patch('/transaction/:id', async (req, res) => {
-    const { id } = req.params;
-    const { transactionNumber } = req.body;
-
-    try {
-      const result = await ordersCollection.updateOne(
-        { _id: new ObjectId(id) },
-        { $set: { transactionNumber } }
-      );
-
-      if (result.matchedCount === 0) {
-        return res.status(404).json({ error: 'Order not found' });
-      }
-
-      res.json({ message: 'Transaction number updated successfully', result });
-    } catch (err) {
-      console.error('Error updating transaction number:', err);
-      res.status(500).json({ error: 'Failed to update transaction number' });
-    }
-  });
-
-  return router;
-};
+module.exports = router;
